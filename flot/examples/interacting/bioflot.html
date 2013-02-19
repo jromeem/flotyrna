@@ -11,13 +11,10 @@
 
 	$(function() {
 
-		var sin = [],
-			cos = [];
+		var zaxis = [[-1, -1], [101, 101]];
 
-		for (var i = 0; i <= 10; i++) {
-			sin.push([i, i]);
-			cos.push([i, i]);
-		}
+		var lol = [[2,3], [3,4], [5.6,4.2], [4,9], [2,6], [6, 7]];
+
 		/*
 		for (var i = 0; i < 14; i += 0.5) {
 			sin.push([i, Math.sin(i)]);
@@ -25,31 +22,23 @@
 		}*/
 
 		var plot = $.plot("#placeholder", [
-			{ data: sin, label: "sin(x)"},
-			{ data: cos, label: "cos(x)"}
-		], {
-			series: {
-				lines: {
-					//show: true
-				},
+			{	data: zaxis,
+				//label: "zaxis",
+				lines: { show: true },
+				points: { show: false },
+				color: "#555"
+			},
+			{	data: lol,
+				label: "lol",
+				lines: { show: false },
+				points: { show: true },
+			}],
 
-				/*points: {
-					show: true
-				}*/
-			},
-			grid: {
-				hoverable: true,
-				clickable: true
-			},
-			xaxis: {
-				min: 0,
-				max: 10
-			},
-			yaxis: {
-				min: 0,
-				max: 10
-			}
-		});
+			{	series: { shadowSize: 0 },
+				grid: { hoverable: true },
+			 	xaxis: { min: 0, max: 100 },
+				yaxis: { min: 0, max: 100 }
+			});
 
 		function showTooltip(x, y, contents) {
 			$("<div id='tooltip'>" + contents + "</div>").css({

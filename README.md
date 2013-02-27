@@ -8,4 +8,15 @@ http://www.flotcharts.org/
 RNA:
 http://en.wikipedia.org/wiki/RNA (lol)
 
-:new: :cool: :gift: :ok: :beer: :sparkles: :heart: :sparkles: :ski: :mega: :smoking: :cop: :warning: :hammer: :runner: :bus: :bike: :taxi: :train: :zzz: :airplane: :key: :bear: :fish: :cake: :bomb: :zap: :computer: :fire: :wheelchair:  :pencil:  :moneybag: :moneybag:
+TO DO
+========
+
+static functions:
+  - given two endpoints to RNA helix --> map diagonal
+  - example : (3, 75) --> y=mx+b equation
+  
+  sub functions:
+    - given two endpoints find their intersection
+    - example : triangle
+  
+ZOOMING! D:

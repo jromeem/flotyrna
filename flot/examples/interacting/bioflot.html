@@ -13,13 +13,61 @@
 
 		var zaxis = [[-1, -1], [101, 101]];
 
-		var lol = [[2,3], [3,4], [5.6,4.2], [4,9], [2,6], [6, 7]];
-
-		/*
-		for (var i = 0; i < 14; i += 0.5) {
-			sin.push([i, Math.sin(i)]);
-			cos.push([i, Math.cos(i)]);
-		}*/
+		var data0 = [[1,11],[2,10]]; var data1 = [[1,16],[2,15]]; var data2 = [[1,25],[2,24]]; var data3 = [[1,47],[2,46]]; 
+		var data4 = [[1,27],[3,25]]; var data5 = [[1,54],[3,52]]; var data6 = [[1,52],[4,49]]; var data7 = [[1,72],[8,65]]; 
+		var data8 = [[2,18],[4,16]]; var data9 = [[2,34],[4,32]]; var data10 = [[2,57],[6,53]]; var data11 = [[2,42],[8,36]]; 
+		var data12 = [[3,12],[4,11]]; var data13 = [[3,13],[4,12]]; var data14 = [[3,28],[4,27]]; var data15 = [[3,40],[4,39]]; 
+		var data16 = [[3,48],[4,47]]; var data17 = [[3,55],[4,54]]; var data18 = [[3,60],[4,59]]; var data19 = [[3,69],[4,68]]; 
+		var data20 = [[3,61],[7,57]]; var data21 = [[3,49],[8,44]]; var data22 = [[4,13],[5,12]]; var data23 = [[4,56],[5,55]]; 
+		var data24 = [[4,70],[5,69]]; var data25 = [[4,17],[7,14]]; var data26 = [[5,52],[6,51]]; var data27 = [[6,19],[7,18]]; 
+		var data28 = [[6,30],[7,29]]; var data29 = [[6,35],[7,34]]; var data30 = [[6,43],[7,42]]; var data31 = [[6,65],[7,64]]; 
+		var data32 = [[6,21],[8,19]]; var data33 = [[6,22],[8,20]]; var data34 = [[6,23],[8,21]]; var data35 = [[6,24],[8,22]]; 
+		var data36 = [[6,31],[8,29]]; var data37 = [[6,37],[8,35]]; var data38 = [[6,45],[8,43]]; var data39 = [[6,66],[8,64]]; 
+		var data40 = [[6,36],[10,32]]; var data41 = [[6,44],[10,40]]; var data42 = [[6,20],[11,15]]; var data43 = [[7,15],[8,14]]; 
+		var data44 = [[7,24],[8,23]]; var data45 = [[7,31],[8,30]]; var data46 = [[7,38],[8,37]]; var data47 = [[7,46],[8,45]]; 
+		var data48 = [[7,58],[8,57]]; var data49 = [[7,67],[8,66]]; var data50 = [[8,53],[9,52]]; var data51 = [[8,51],[10,49]]; 
+		var data52 = [[9,69],[10,68]]; var data53 = [[9,55],[11,53]]; var data54 = [[10,27],[11,26]]; var data55 = [[10,52],[11,51]]; 
+		var data56 = [[10,72],[11,71]]; var data57 = [[10,47],[12,45]]; var data58 = [[10,25],[13,22]]; var data59 = [[11,19],[12,18]]; 
+		var data60 = [[11,30],[12,29]]; var data61 = [[11,37],[12,36]]; var data62 = [[11,43],[12,42]]; var data63 = [[11,65],[12,64]]; 
+		var data64 = [[11,20],[13,18]]; var data65 = [[11,22],[13,20]]; var data66 = [[11,45],[13,43]]; var data67 = [[12,20],[13,19]]; 
+		var data68 = [[12,31],[13,30]]; var data69 = [[12,38],[13,37]]; var data70 = [[12,46],[13,45]]; var data71 = [[12,58],[13,57]]; 
+		var data72 = [[12,66],[13,65]]; var data73 = [[12,43],[15,40]]; var data74 = [[12,35],[17,30]]; var data75 = [[13,53],[14,52]]; 
+		var data76 = [[13,51],[15,49]]; var data77 = [[14,55],[16,53]]; var data78 = [[14,69],[17,66]]; var data79 = [[15,27],[16,26]]; 
+		var data80 = [[15,52],[16,51]]; var data81 = [[15,63],[16,62]]; var data82 = [[15,72],[16,71]]; var data83 = [[15,25],[17,23]]; 
+		var data84 = [[15,39],[17,37]]; var data85 = [[15,47],[17,45]]; var data86 = [[15,59],[20,54]]; var data87 = [[16,22],[17,21]]; 
+		var data88 = [[16,23],[17,22]]; var data89 = [[16,36],[17,35]]; var data90 = [[16,37],[17,36]]; var data91 = [[16,44],[17,43]]; 
+		var data92 = [[16,45],[17,44]]; var data93 = [[16,66],[17,65]]; var data94 = [[16,65],[18,63]]; var data95 = [[16,30],[19,27]]; 
+		var data96 = [[16,35],[19,32]]; var data97 = [[16,43],[20,39]]; var data98 = [[17,26],[18,25]]; var data99 = [[17,53],[18,52]]; 
+		var data100 = [[17,73],[18,72]]; var data101 = [[17,62],[20,59]]; var data102 = [[17,71],[20,68]]; var data103 = [[17,51],[21,47]]; 
+		var data104 = [[18,40],[19,39]]; var data105 = [[18,48],[19,47]]; var data106 = [[18,55],[19,54]]; var data107 = [[18,60],[19,59]]; 
+		var data108 = [[18,69],[19,68]]; var data109 = [[18,49],[20,47]]; var data110 = [[19,28],[20,27]]; var data111 = [[19,33],[20,32]]; 
+		var data112 = [[19,50],[20,49]]; var data113 = [[19,41],[21,39]]; var data114 = [[19,56],[21,54]]; var data115 = [[19,61],[21,59]]; 
+		var data116 = [[19,70],[21,68]]; var data117 = [[20,56],[22,54]]; var data118 = [[20,70],[22,68]]; var data119 = [[21,33],[22,32]]; 
+		var data120 = [[21,50],[22,49]]; var data121 = [[21,41],[23,39]]; var data122 = [[22,48],[23,47]]; var data123 = [[22,55],[23,54]]; 
+		var data124 = [[22,60],[23,59]]; var data125 = [[22,69],[23,68]]; var data126 = [[22,70],[24,68]]; var data127 = [[22,56],[27,51]]; 
+		var data128 = [[23,33],[24,32]]; var data129 = [[23,41],[24,40]]; var data130 = [[23,50],[24,49]]; var data131 = [[24,47],[25,46]]; 
+		var data132 = [[24,52],[26,50]]; var data133 = [[24,72],[26,70]]; var data134 = [[25,34],[26,33]]; var data135 = [[25,42],[26,41]]; 
+		var data136 = [[25,57],[26,56]]; var data137 = [[26,54],[27,53]]; var data138 = [[26,72],[27,71]]; var data139 = [[26,47],[28,45]]; 
+		var data140 = [[27,43],[31,39]]; var data141 = [[28,34],[29,33]]; var data142 = [[28,53],[29,52]]; var data143 = [[28,51],[30,49]]; 
+		var data144 = [[29,55],[30,54]]; var data145 = [[29,69],[30,68]]; var data146 = [[30,56],[31,55]]; var data147 = [[30,60],[31,59]]; 
+		var data148 = [[30,69],[31,68]]; var data149 = [[30,70],[31,69]]; var data150 = [[30,55],[32,53]]; var data151 = [[30,48],[33,45]]; 
+		var data152 = [[31,52],[32,51]]; var data153 = [[32,45],[33,44]]; var data154 = [[32,43],[34,41]]; var data155 = [[32,65],[34,63]]; 
+		var data156 = [[33,51],[34,50]]; var data157 = [[33,53],[34,52]]; var data158 = [[33,62],[34,61]]; var data159 = [[33,73],[34,72]]; 
+		var data160 = [[33,57],[36,54]]; var data161 = [[33,71],[36,68]]; var data162 = [[34,40],[35,39]]; var data163 = [[34,48],[35,47]]; 
+		var data164 = [[34,55],[35,54]]; var data165 = [[34,60],[35,59]]; var data166 = [[34,69],[35,68]]; var data167 = [[36,50],[37,49]]; 
+		var data168 = [[36,55],[37,54]]; var data169 = [[36,69],[37,68]]; var data170 = [[37,56],[38,55]]; var data171 = [[37,70],[38,69]]; 
+		var data172 = [[37,55],[39,53]]; var data173 = [[37,69],[39,67]]; var data174 = [[37,48],[40,45]]; var data175 = [[37,60],[40,57]]; 
+		var data176 = [[38,52],[39,51]]; var data177 = [[39,66],[42,63]]; var data178 = [[40,46],[41,45]]; var data179 = [[41,53],[42,52]]; 
+		var data180 = [[41,73],[42,72]]; var data181 = [[41,51],[43,49]]; var data182 = [[41,57],[44,54]]; var data183 = [[41,62],[44,59]]; 
+		var data184 = [[41,71],[44,68]]; var data185 = [[42,48],[43,47]]; var data186 = [[42,49],[43,48]]; var data187 = [[42,55],[43,54]]; 
+		var data188 = [[42,60],[43,59]]; var data189 = [[42,69],[43,68]]; var data190 = [[43,56],[45,54]]; var data191 = [[43,70],[45,68]]; 
+		var data192 = [[44,50],[45,49]]; var data193 = [[45,56],[46,55]]; var data194 = [[45,61],[46,60]]; var data195 = [[45,70],[46,69]]; 
+		var data196 = [[45,55],[47,53]]; var data197 = [[45,69],[47,67]]; var data198 = [[45,60],[48,57]]; var data199 = [[46,52],[47,51]]; 
+		var data200 = [[46,63],[47,62]]; var data201 = [[46,72],[47,71]]; var data202 = [[47,66],[48,65]]; var data203 = [[49,65],[53,61]]; 
+		var data204 = [[50,57],[51,56]]; var data205 = [[50,62],[51,61]]; var data206 = [[50,71],[51,70]]; var data207 = [[50,73],[53,70]]; 
+		var data208 = [[51,59],[52,58]]; var data209 = [[51,68],[52,67]]; var data210 = [[52,64],[54,62]]; var data211 = [[52,73],[54,71]]; 
+		var data212 = [[53,59],[54,58]]; var data213 = [[53,68],[56,65]]; var data214 = [[54,65],[55,64]]; var data215 = [[54,66],[55,65]]; 
+		var data216 = [[56,71],[58,69]]; var data217 = [[57,69],[59,67]]; var data218 = [[59,66],[60,65]];
 
 		var plot = $.plot("#placeholder", [
 			{	data: zaxis,
@@ -28,16 +76,34 @@
 				points: { show: false },
 				color: "#555"
 			},
-			{	data: lol,
-				label: "lol",
-				lines: { show: false },
-				points: { show: true },
-			}],
+				data0,data1,data2,data3,data4,data5,data6,data7,data8,data9,data10,
+				data11,data12,data13,data14,data15,data16,data17,data18,data19,data20,
+				data21,data22,data23,data24,data25,data26,data27,data28,data29,data30,
+				data31,data32,data33,data34,data35,data36,data37,data38,data39,data40,
+				data41,data42,data43,data44,data45,data46,data47,data48,data49,data50,
+				data51,data52,data53,data54,data55,data56,data57,data58,data59,data60,
+				data61,data62,data63,data64,data65,data66,data67,data68,data69,data70,
+				data71,data72,data73,data74,data75,data76,data77,data78,data79,data80,
+				data81,data82,data83,data84,data85,data86,data87,data88,data89,data90,
+				data91,data92,data93,data94,data95,data96,data97,data98,data99,data100,
+				data101,data102,data103,data104,data105,data106,data107,data108,data109,data110,
+				data111,data112,data113,data114,data115,data116,data117,data118,data119,data120,
+				data121,data122,data123,data124,data125,data126,data127,data128,data129,data130,
+				data131,data132,data133,data134,data135,data136,data137,data138,data139,data140,
+				data141,data142,data143,data144,data145,data146,data147,data148,data149,data150,
+				data151,data152,data153,data154,data155,data156,data157,data158,data159,data160,
+				data161,data162,data163,data164,data165,data166,data167,data168,data169,data170,
+				data171,data172,data173,data174,data175,data176,data177,data178,data179,data180,
+				data181,data182,data183,data184,data185,data186,data187,data188,data189,data190,
+				data191,data192,data193,data194,data195,data196,data197,data198,data199,data200,
+				data201,data202,data203,data204,data205,data206,data207,data208,data209,data210,
+				data211,data212,data213,data214,data215,data216,data217,data218,
+			],
 
 			{	series: { shadowSize: 0 },
 				grid: { hoverable: true },
-			 	xaxis: { min: 0, max: 100 },
-				yaxis: { min: 0, max: 100 }
+			 	xaxis: { min: 0, max: 75 },
+				yaxis: { min: 0, max: 75 }
 			});
 
 		function showTooltip(x, y, contents) {

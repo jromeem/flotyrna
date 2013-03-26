@@ -12,11 +12,6 @@
 <script></script>
 <script src="http://jquery-csv.googlecode.com/git/src/jquery.csv.js"></script>
 <script>
-
-    //allows any function to access loaded files
-    var files;
-    var currentlyLoadedGraph;
-
   $(function() {
     $("#tabs").tabs();
   });
@@ -55,8 +50,8 @@
         grid: { hoverable: true },  //enables mouse-over events
         color: "#006fff",
       },
-      xaxis: { min: 0, max: 1600 },
-      yaxis: { min: 0, max: 1600 },
+      xaxis: { min: 0, max: 73 },
+      yaxis: { min: 0, max: 73 },
     }
 
     var data1 = [];
@@ -83,80 +78,17 @@
 
   // handles csv files
   function handleFileSelect(evt) {
-    files = evt.target.files; // FileList object
+    var files = evt.target.files; // FileList object
 
     // reset the flot dataset
     flot2.setData([]);
-    flotFileData(files[0]);
-    currentlyLoadedGraph = 0;
     //this loop interates through multiple files
-    // for(var i=0, len=files.length; i<len; i++) {
-    //   flotFileData(files[i]);
-    // }
+    for(var i=0, len=files.length; i<len; i++) {
+      flotFileData(files[i], i);
+    }
   }
 
   //function flotFileData(file, i) {      //original code
-
-  function reloadGraph(n) {
-
-    switch(n)
-    {
-    case 0:
-      if(files == null)
-        alert("Warning, no files loaded!");
-      else {
-        if (files.length > 1) {
-          currentlyLoadedGraph = prompt("File to load (from 1 to " + (files.length) + "):") - 1;   //prompt user for input. subtract one to provide illusion of index starting at 1
-          flotFileData(files[currentlyLoadedGraph]);
-          $("#displayFileNumber").html("Current file: " + (currentlyLoadedGraph + 1));  //display array index + 1 that is currently loaded
-        }
-        else
-          alert("Only one file is loaded.");
-      }
-      break;
-    
-    case 1:
-      if(files == null)
-        alert("Warning, no files loaded!");
-      else {
-        if (files.length > 1) {
-          if ((currentlyLoadedGraph - 1) >= 0) {
-            currentlyLoadedGraph--;
-            flotFileData(files[currentlyLoadedGraph]);
-            $("#displayFileNumber").html("Current file: " + (currentlyLoadedGraph + 1));  //display array index + 1 that is currently loaded
-          }
-          else
-            alert("No previous graph to load.");
-        }
-        else
-          alert("Only one file is loaded.");
-      }
-      break;
-
-    case 2:
-      if(files == null)
-        alert("Warning, no files loaded!");
-      else {
-        if (files.length > 1) {
-          if ((currentlyLoadedGraph + 1) < files.length) {
-            currentlyLoadedGraph++;
-            flotFileData(files[currentlyLoadedGraph]);
-            $("#displayFileNumber").html("Current file: " + (currentlyLoadedGraph + 1));  //display array index + 1 that is currently loaded
-          }
-          else
-            alert("No next graph to load.");
-        }
-        else
-          alert("Only one file is loaded.");
-      }
-      break;
-
-    default:
-      alert("invalid use of reloadGraph().");
-    }
-    // console.log("value of currentlyLoadedGraph: " + currentlyLoadedGraph);
-  }
-
   function flotFileData(file) {
     var reader = new FileReader();
     reader.readAsText(file);
@@ -167,7 +99,7 @@
         onParseValue:$.csv.hooks.castToScalar
       });
 
-      console.log(newData)
+      // console.log(newData)
       // console.log("newData length: " + newData.length)
       // console.log(csv)
 
@@ -220,7 +152,7 @@
       //draw diagonal line
       // should this be put first or last? last for now.
       organizedData[organizedData.length] = {
-        data: [[-1,-1],[1600,1600]],
+        data: [[-1,-1],[74,74]],
         color: "#555"
       };
 
@@ -244,11 +176,11 @@ width:100%;
 <body>
 <div id=tabs>
   <ul>
-    <li><a href="#tabs-1">Load From File</a></li>
+    <li><a href="#tabs-1">Intro</a></li>
     <li><a href="#tabs-2">Load From TextArea</a></li>
-    <li><a href="#tabs-3">Intro</a></li>
+    <li><a href="#tabs-3">Load From File</a></li>
   </ul>
-  <div id=tabs-3>
+  <div id=tabs-1>
     <h2> Welcome to the jQuery-CSV + Flot Demonstration</h2>
       <p>On the adjacent tabs, you will find demonstrations whereby you can load your own data into a fully functional Flot chart.</p>
       <p>You'll need the HTML5 File Api to use the file loader but no worries, if your browser is lagging behind in HTML5 adoption ::cough::IE::cough:: you can still try out the demos by pasting data into the text area in the first example.</p>
@@ -375,19 +307,13 @@ width:100%;
     <hr />
     <div id=flot1 style="width:600px;height:300px;margin:0 auto;"></div>
   </div>
-  <div id=tabs-1>
-    <p>Choose a CSV file through the file dialog.</p>
-    <p>Note: This demo is capable of processing and loading multiple data files. To use this feature, select more than one file in the dialog.</p>
+  <div id=tabs-3>
+    <p>To use this demo, just choose a CSV file through the file dialog. Really, it's that easy.</p>
+    <p>Note: This demo is capable of processing and loading multiple data files. Just select more than one file in the dialog.</p>
+    <p>I suggest you try loading the <a href="http://jquery-csv.googlecode.com/git/examples/data/analytics1.csv">analytics1.csv</a> and <a href="http://jquery-csv.googlecode.com/git/examples/data/analytics2.csv">analytics2.csv</a> data sets together.</p>
     <hr />
     <input id=fileInput type=file name=files[] multiple />
     <hr />
-    <button onclick="reloadGraph(0)">Pick File</button>
-    <br><br>
-    <button onclick="reloadGraph(1)">Previous File</button>
-    <button onclick="reloadGraph(2)">Next File</button>
-    <hr />
-
-    <div id="displayFileNumber" style="text-align:center;"></div>
     <div id=flot2 style="width:600px;height:600px;margin:0 auto;"></div>
   </div>
 </body>

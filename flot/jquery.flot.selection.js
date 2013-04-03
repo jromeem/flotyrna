@@ -69,7 +69,8 @@ The plugin allso adds the following methods to the plot object:
         var selection = {
                 first: { x: -1, y: -1}, second: { x: -1, y: -1},
                 show: false,
-                active: false
+                active: false,
+                initial: true
             };
 
         // FIXME: The drag handling implemented here should be
@@ -107,8 +108,8 @@ The plugin allso adds the following methods to the plot object:
             }
 
             setSelectionPos(selection.first, e);
-
             selection.active = true;
+            selection.initial = false;
 
             // this is a bit silly, but we have to use a closure to be
             // able to whack the same handler again
@@ -129,6 +130,7 @@ The plugin allso adds the following methods to the plot object:
             // no more dragging
             selection.active = false;
             updateSelection(e);
+            selection.initial = true;
 
             if (selectionIsSane())
                 triggerSelectedEvent();
@@ -183,6 +185,38 @@ The plugin allso adds the following methods to the plot object:
 
             if (o.selection.mode == "x")
                 pos.y = pos == selection.first ? 0 : plot.height();
+            console.log(o.selection.square);
+            if (o.selection.square && !selection.initial) {
+                var xlen = Math.abs(selection.second.x - selection.first.x);
+                var ylen = Math.abs(selection.second.y - selection.first.y);
+                xlen < ylen ? setSelectSquare(pos, xlen) : setSelectSquare(pos, ylen);
+            }
+        }
+
+        //this does square selection
+        function setSelectSquare(pos, len) {
+            var xdiff = selection.second.x - selection.first.x;
+            var ydiff = selection.second.y - selection.first.y;
+            //bottom right
+            if (xdiff >= 0 && ydiff >= 0) {
+                pos.x = selection.first.x + len;
+                pos.y = selection.first.y + len;
+            }
+            //bottom left
+            if (xdiff < 0 && ydiff > 0) {
+                pos.x = selection.first.x - len;
+                pos.y = selection.first.y + len;
+            }
+            //top left
+            if (xdiff < 0 && ydiff < 0) {
+                pos.x = selection.first.x - len;
+                pos.y = selection.first.y - len;
+            }
+            //top right
+            if (xdiff > 0 && ydiff < 0) {
+                pos.x = selection.first.x + len;
+                pos.y = selection.first.y - len;
+            }
         }
 
         function updateSelection(pos) {
@@ -335,7 +369,8 @@ The plugin allso adds the following methods to the plot object:
         options: {
             selection: {
                 mode: null, // one of null, "x", "y" or "xy"
-                color: "#e8cfac"
+                color: "#e8cfac",
+                square: false
             }
         },
         name: 'selection',

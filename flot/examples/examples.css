@@ -52,7 +52,7 @@ input[type=checkbox] {
 }
 
 #content {
-	width: 880px;
+	width: 1170px;
 	margin: 0 auto;
 	padding: 10px;
 }
@@ -69,8 +69,8 @@ input[type=checkbox] {
 	box-sizing: border-box;
 	width: 850px;
 	height: 600px;
-	padding: 20px 15px 15px 15px;
-	margin: 15px auto 30px auto;
+	/*padding: 15px 15px 15px 15px;*/
+	/*margin: 15px auto 30px auto;*/
 	border: 1px solid #ddd;
 	background: #fff;
 	background: linear-gradient(#f6f6f6 0, #fff 50px);
@@ -92,6 +92,30 @@ input[type=checkbox] {
 	line-height: 14px;
 }
 
+.demo-items {
+	width: 100%;
+	height: 100%;
+	font-size: 14px;
+	line-height: 14px;
+}
+
 .legend table {
 	border-spacing: 5px;
+}
+
+.sidebar-files {
+	height: 565px;
+	overflow: auto;
+	/*border: 1px solid #ddd;*/
+}
+
+.file-names {
+	/* top right bot left */
+	padding: 0px 0px 0px 4px;
+	margin: 3px 3px 3px 3px;
+	border: 1px solid #ddd;
+}
+
+.file-names:hover {
+	background-color:#ddd;
 }

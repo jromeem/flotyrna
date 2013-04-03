@@ -1,0 +1,461 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Graphing RNA Folding with Flot</title>
+	<link href="../examples.css" rel="stylesheet" type="text/css">
+	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../../excanvas.min.js"></script><![endif]-->
+	<script src="../../jquery.js"></script>
+	<script src="../../jquery.flot.js"></script>
+	<script src="../../jquery.flot.selection.js"></script>
+  <script src="../../jquery.flot.navigate.js"></script>
+	<script src="../../jquery.csv.js"></script>
+	<script type="text/javascript">
+
+	var organizedData = [];
+	var files;
+  var currentlyLoadedGraph;   // used by next/previous buttons via reloadGraph()
+  var previousFile;           // used by file sidebar to reset bg color
+  var xymax;
+
+  //for the larger graph
+  var l_options = {
+    series: {
+      shadowSize: 0,
+      lines: { show: true },
+      points: { show: false },
+      grid: { 
+        hoverable: true,  //enables mouse-over events
+        clickable: true,
+      },
+      color: "#006fff",
+    },
+    xaxis: { min: 0, max: 1600, ticks:12 },
+    yaxis: { min: 0, max: 1600, ticks:12 },
+    selection: {
+              // empty because pan/zoom is enabled by default
+      // mode: "xy",
+      // square: true
+    },
+    zoom: {
+      interactive: true
+    },
+    pan: {
+      interactive: true,
+      frameRate: 30
+    }
+  }
+
+  //for the smaller overview graph
+  var s_options = {
+    series: {
+      shadowSize: 0,
+      lines: { show: true },
+      points: { show: false },
+      grid: { hoverable: false },
+      color: "#006fff",
+    },
+    xaxis: { min: 0, max: 1600, ticks:8 },
+    yaxis: { min: 0, max: 1600, ticks:8 },
+    selection: {
+      mode: "xy",  //for selection plugin
+      square: true
+    }
+  }
+
+
+
+  $(function() {
+    // prints footer
+    $("#footer").prepend("Flot " + $.plot.version);
+
+    // toggles square zoom/free zoom with click/drag zooming
+    $("#enableSquareZoom").on("click", enableSquareZoom);
+
+    // toggles between click/drag zoom and navigation
+    $("#toggleNav").on("click", toggleNav);
+
+    // $("body").click(function(e) {
+    //   if (e.target.id == "demo-placeholder" || $(e.target).parents("#placeholder").size()) { 
+    //     alert("Inside div");
+    //   } else { 
+    //      alert("Outside div");
+    //   }
+    // });
+
+
+    // function showTooltip(x, y, contents) {
+    //   $("<div id='tooltip'>" + contents + "</div>").css({
+    //     position: "absolute",
+    //     display: "none",
+    //     top: y + 5,
+    //     left: x + 5,
+    //     border: "1px solid #fdd",
+    //     padding: "2px",
+    //     "background-color": "#fee",
+    //     opacity: 0.80
+    //   }).appendTo("body").fadeIn(200);
+    // }
+
+    // var previousPoint = null;
+    // $("#placeholder").bind("plothover", function (event, pos, item) {
+
+    //   if ($("#enablePosition:checked").length > 0) {
+    //     var str = "(" + pos.x.toFixed(2) + ", " + pos.y.toFixed(2) + ")";
+    //     $("#hoverdata").text(str);
+    //   }
+
+    //   if ($("#enableTooltip:checked").length > 0) {
+    //     if (item) {
+    //       if (previousPoint != item.dataIndex) {
+
+    //         previousPoint = item.dataIndex;
+
+    //         $("#tooltip").remove();
+    //         var x = item.datapoint[0].toFixed(2),
+    //         y = item.datapoint[1].toFixed(2);
+
+    //         showTooltip(item.pageX, item.pageY,
+    //             item.series.label + " of " + x + " = " + y);
+    //       }
+    //     } else {
+    //       $("#tooltip").remove();
+    //       previousPoint = null;            
+    //     }
+    //   }
+    // });
+  });
+
+  $(document).ready(function() {
+    if(isAPIAvailable()) {
+      $('#fileInput').bind('change', handleFileSelect);
+    }
+    flotTextData();
+
+    $('#run').bind('click', flotTextData);
+  });
+
+    // displays a warning if the browser doesn't support the HTML5 File API
+  function isAPIAvailable() {
+    // Check for the various File API support.
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+      // Great success! All the File APIs are supported.
+      return true;
+    } else {
+      alert("The browser you're using does not currently support\nthe HTML5 File API. As a result the file loading demo\nwon't work properly.");
+      return false;
+    }
+  }
+
+  // init for flot
+  function flotTextData() {
+    var fileData = [];
+    bioflot = $.plot('#placeholder', fileData, l_options);
+    flotmap = $.plot('#overview', fileData, s_options);
+
+	// bind main graph for selection plugin
+  	$("#placeholder").bind("plotselected", function (event, ranges) {
+
+  		// clamp the zooming to prevent eternal zoom
+      if (ranges.xaxis.to - ranges.xaxis.from < 0.00001) {
+  			ranges.xaxis.to = ranges.xaxis.from + 0.00001;
+  		}
+  		if (ranges.yaxis.to - ranges.yaxis.from < 0.00001) {
+  			ranges.yaxis.to = ranges.yaxis.from + 0.00001;
+  		}
+
+  		// do the zooming
+  		bioflot = $.plot("#placeholder", organizedData,
+  			$.extend(true, {}, l_options, {
+  				xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+  				yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
+  			})
+      );
+
+  		// don't fire event on the overview to prevent eternal loop
+      flotmap.setSelection(ranges, true);
+    });
+
+  	// this function binds selection on overview to main graph area
+  	$("#overview").bind("plotselected", function (event, ranges) {
+  		bioflot.setSelection(ranges);
+  	});
+  }
+
+  // allows user to reset zoom state via button
+  function resetZoom() {
+    bioflot = $.plot("#placeholder", organizedData,
+     $.extend(true, {}, l_options, {
+       xaxis: { min: -5, max: xymax },
+       yaxis: { min: -5, max: xymax }
+     })
+    );
+  }
+
+  // toggles between pan/zoom and selection zooming on main graph
+  function toggleNav() {
+    if ($("#toggleNav").prop('checked')) {
+      // disable pan/zoom
+      l_options.zoom = {};
+      l_options.pan = {};
+
+      // enable selection zooming on main
+      l_options.selection.mode = "xy";
+      l_options.selection.square = true;
+    }
+    else {
+      // disable selection zooming on main
+      l_options.selection = {};
+      // s_options.selection = {};  //this is for smaller graph- dont need to change it for now
+
+      // enable pan/zoom
+      l_options.zoom.interactive = true;
+      l_options.pan.interactive = true;
+      l_options.pan.frameRate = 30;
+    }
+
+    // update plot options
+    bioflot = $.plot("#placeholder", organizedData, l_options);
+    bioflot.setupGrid();
+    bioflot.draw();
+  }
+
+  /* Currently Unused */
+  // allows user to disable/enable square zoom feature
+  function enableSquareZoom() {
+    if ($("#enableSquareZoom").prop('checked')) {
+      l_options.selection.square = true;
+      s_options.selection.square = true;
+    }
+    else {
+      l_options.selection.square = false;
+      s_options.selection.square = false;
+    }
+    // update plot options
+    bioflot = $.plot("#placeholder", organizedData, l_options);
+    flotmap = $.plot("#overview", organizedData, s_options);
+
+    // redraw graphs with new option settings
+    bioflot.setupGrid();
+    bioflot.draw();
+    flotmap.setupGrid();
+    flotmap.draw();
+  }
+
+  // handles csv files
+  function handleFileSelect(evt) {
+    files = evt.target.files; // FileList object
+    // reset the flot dataset and load new file
+    bioflot.setData([]);
+    flotFileData(files[0]);
+    currentlyLoadedGraph = 0;
+    displayFiles();
+    $("#file-button_0").css("background-color", "#ff6600");
+    previousFile = 0;
+  }
+
+  // displays/updates currently loaded files
+  function displayFiles() {
+    // clear current file list
+    $(".file-names").remove();
+
+    // populate visual file list
+    for (var i = 0; i <= files.length - 1; i++) { 
+      $("#filebar").append('<div id="file-button_' + i + '"class="file-names">' + files[i].name + '</div>');
+    };
+
+    // load file on clicking the div/tab
+    $(".file-names").click(function () {
+      var name = $(this).attr("id");
+      var fileNumber = name.substr(name.lastIndexOf('_') + 1);
+      sidebarFileLoad(fileNumber);
+    });
+  }
+
+  // load graphs based on input from file sidebar
+  function sidebarFileLoad(file) {
+    $("#file-button_" + previousFile).removeAttr('style');
+    flotFileData(files[file]);
+    currentlyLoadedGraph = file;
+    $("#file-button_" + file).css("background-color", "#ff6600");
+    previousFile = file;
+  }
+
+  // next/previous/file select
+  function reloadGraph(n) {
+    switch(n)
+    {
+      case 0:
+      if(files == null)
+        alert("Warning, no files loaded!");
+      else {
+        if (files.length > 1) {
+        currentlyLoadedGraph = prompt("File to load (from 1 to " + (files.length) + "):") - 1;   //prompt user for input. subtract one to provide illusion of index starting at 1
+        flotFileData(files[currentlyLoadedGraph]);
+        sidebarFileLoad(currentlyLoadedGraph);
+      }
+      else
+        alert("Only one file is loaded.");
+    }
+    break;
+
+    case 1:
+    if(files == null)
+      alert("Warning, no files loaded!");
+    else {
+      if (files.length > 1) {
+        if ((currentlyLoadedGraph - 1) >= 0) {
+          currentlyLoadedGraph--;
+          flotFileData(files[currentlyLoadedGraph]);
+          sidebarFileLoad(currentlyLoadedGraph);
+        }
+        else
+          alert("No previous graph to load.");
+      }
+      else
+        alert("Only one file is loaded.");
+    }
+    break;
+
+    case 2:
+    if(files == null)
+      alert("Warning, no files loaded!");
+    else {
+      if (files.length > 1) {
+        if ((currentlyLoadedGraph) < files.length - 1) {
+          currentlyLoadedGraph++;
+          flotFileData(files[currentlyLoadedGraph]);
+          sidebarFileLoad(currentlyLoadedGraph);
+        }
+        else
+          alert("No next graph to load.");
+      }
+      else
+        alert("Only one file is loaded.");
+    }
+    break;
+
+    default:
+    alert("Invalid use of reloadGraph().");
+    }
+  }
+
+
+  function flotFileData(file) {
+    var reader = new FileReader();
+    reader.readAsText(file);
+    $("#displayFileNumber").html("Current file: " + file.name);
+    reader.onload = function(event){
+      var csv = event.target.result;
+
+      //newData is of form [Array[2], Array[2] ... Array[2]]
+      var newData = $.csv.toArrays(csv, {
+        onParseValue:$.csv.hooks.castToScalar
+      });
+
+      // detect largest x/y values for current file
+      xymax = newData[newData.length-1][3] + 10;
+
+      // console.log(newData)
+      // console.log("newData length: " + newData.length)
+      // console.log(csv)
+
+      //clears graph between loading files
+      organizedData = [];	
+      for (var j = 0; j < newData.length; j++) {
+        //put [[x1,y1], [x2,y2]] into organizedData[]
+        //csv: y1, y2, x2, y2
+
+        // organizedData[j] = [[newData[j][3], newData[j][0]], [newData[j][2], newData[j][1]]];
+        if(newData[j][7] == 1)
+          organizedData.push({
+            color: "#ff6600",
+            data:
+            [[newData[j][2], newData[j][1]],
+            [newData[j][3], newData[j][0]]
+            ]});
+        else
+          organizedData.push(
+            [[newData[j][2], newData[j][1]],
+            [newData[j][3], newData[j][0]]
+            ]);
+      }
+
+      //draw triangles
+      for (var k = 0; k < newData.length; k++) {
+        if (newData[k][7] == 1) {  //if comparative == 1, draw the triangle
+          for (var h = 0; h <= (newData[k][3] - newData[k][2]); h++) {
+            organizedData.push({
+              color: "#ff6600",
+              data:
+              [[(newData[k][0] + h), (newData[k][0] + h)],
+              [(newData[k][0] + h), (newData[k][3] - h)],
+              [(newData[k][3] - h), (newData[k][3] - h)]
+              ]});
+          }
+        }
+      }
+
+      // draw diagonal line
+      // should this be put first or last? last for now.
+      organizedData[organizedData.length] = {
+        data: [[-5000,-5000],[5000,5000]],
+        color: "#555"
+      };
+
+      // append to the existing dataset
+      bioflot.setData(organizedData);
+      bioflot.setupGrid();
+      bioflot.draw();
+
+      flotmap.setData(organizedData);
+      flotmap.setupGrid();
+      flotmap.draw();
+      resetZoom();
+    };
+    reader.onerror = function() { alert('Unable to read ' + file.fileName); };
+  }
+
+  </script>
+</head>
+<body>
+
+  <div id="header">
+    <h2>Bioflot</h2>
+  </div>
+
+  <!-- use width:1300px for firefox. looks okay in chrome. find a way to fix this. -->
+  <div id="content">
+
+    <hr />
+    <input id="fileInput" type="file" name=files[] multiple />
+    <hr />
+    <br>
+
+    <div class="demo-container" style="float:left; width:300px; height:600px;">
+      <div id="filebar" class="sidebar-files">
+      </div>
+    </div>
+
+    <div class="demo-container" style="float:right;">
+      <div id="placeholder" class="demo-placeholder" style="margin: 15px 0px 0px 15px;float:left; width:550px; height:550px"></div>
+      <div id="overview" class="demo-placeholder" style="margin: 15px 15px 0px 0px;float:right; width:250px; height:250px;"></div>
+      <div class="demo-item" style="float:right; width:250px; height:10px;"></div>
+      <div id="displayFileNumber" class="demo-item" style="line-height:15pt; font-size:13pt;float:right; width:250px; height:40px;">Current file: none</div>
+     <!-- <div style="float:right; width:250px; height:20px;"><label><input id="enableTooltip" type="checkbox"></input>Enable tooltip</label></div> -->
+      <!-- <div style="float:right; width:250px; height:20px;"><label><input id="enableSquareZoom" type="checkbox" checked="checked"></input>Square Mouse Zoom</label></div> -->
+      <div style="float:right; width:250px; height:20px;"><label><input id="toggleNav" type="checkbox"></input>Toggle Navigation Type</label></div>
+      <div class="demo-item" style="float:right; width:250px; height:10px;"></div>
+      <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="resetZoom()">Reset Zoom</button></div>
+      <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(0)">Pick File</button></div>
+      <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(1)">Previous File</button></div>
+      <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(2)">Next File</button></div>
+    </div>
+
+  </div>
+
+  <div id="footer" style="width:200px;margin:0 auto">
+  </div>
+
+</body>
+</html>

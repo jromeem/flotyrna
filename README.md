@@ -1,7 +1,7 @@
 ## References ##
-Flot: http://www.flotcharts.org/
-RNA: http://en.wikipedia.org/wiki/RNA (lol)
-Emojis: http://www.emoji-cheat-sheet.com/
+Flot: http://www.flotcharts.org/<br>
+RNA: http://en.wikipedia.org/wiki/RNA (lol)<br>
+Emojis: http://www.emoji-cheat-sheet.com/<br>
 
 ## Usage ##
 - Open index.html file in browser

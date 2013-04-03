@@ -11,7 +11,7 @@ http://en.wikipedia.org/wiki/RNA
 TO DO
 ========
 - Color coding for primary initiation, primary elongation, secondary initiation, and secondary elongation
-- Color coding for Comparative/Predicted, Comparative/Not Predicted, and Not Comparative/Not Predicted
+- Color coding for Comparative/Predicted, Comparative/Not Predicted, and Comparative/Not Predicted
 
 
 LATER

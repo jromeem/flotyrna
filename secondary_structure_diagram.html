@@ -456,7 +456,7 @@
       for (var i = 1; i < newData.length; i++) {
         var nBaseColor;
         if (newData[i][11] > condDist && showOutOfRange) {
-          nBaseColor = "#EEB422"; //orange
+          nBaseColor = "#BF3EFF"; //purple
           for (var j = newData[i][1]; j <= newData[i][2]; j++) {
             organizedData[j-1].color = nBaseColor;
             organizedData[j-1].cColor = nBaseColor;
@@ -566,7 +566,7 @@
       }
       if (showOutOfRange) {
         organizedData.push({
-          color: "#EEB422",
+          color: "#BF3EFF",
           label: "Out of Range",
           data: [],
         });

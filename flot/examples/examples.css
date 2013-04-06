@@ -105,8 +105,9 @@ input[type=checkbox] {
 }
 
 .sidebar-files {
-	height: 565px;
-	overflow: auto;
+	height: 597px;
+	overflow-x: hidden;
+	overflow-y: auto;
 	/*border: 1px solid #ddd;*/
 }
 

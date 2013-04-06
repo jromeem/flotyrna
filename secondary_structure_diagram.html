@@ -30,8 +30,8 @@
     <br>
     <br>
 
-    <div class="demo-container" style="float:left; width:220px; height:600px;">
-      <div id="filebar" class="sidebar-files">
+    <div class="demo-container" style="float:left; width:220px; height:835px;">
+      <div id="filebar" class="sidebar-files" style="height:832px">
       </div>
     </div>
 
@@ -42,8 +42,14 @@
       <div id="displayFileNumber" class="demo-item" style="line-height:15pt; font-size:13pt;float:right; width:250px; height:40px;">Current file: none</div>
      <!-- <div style="float:right; width:250px; height:20px;"><label><input id="enableTooltip" type="checkbox"></input>Enable tooltip</label></div> -->
       <!-- <div style="float:right; width:250px; height:20px;"><label><input id="enableSquareZoom" type="checkbox" checked="checked"></input>Square Mouse Zoom</label></div> -->
-      <div style="float:right; width:250px; height:20px;"><label><input id="toggleNav" type="checkbox"></input>Toggle Navigation Type</label></div>
-      <div class="demo-item" style="float:right; width:250px; height:10px;"></div>
+      <div style="float:right; width:230px; height:80px; border: 1px solid #ddd; padding: 0px 0px 5px 5px; margin: 0px 15px 0px 0px">
+        <label><input id="toggleOutOfRange" type="checkbox" checked></input>Show Out of Range</label>
+        <br>Conditional Distance Cutoff:
+        <input id="condDist" type="number" style="width:100px;margin-right:10px" min="0"><button id="condDistButton">Re-graph</button></input>
+      </div>
+      <div style="float:right; width:250px; height:30px;"><label><input id="toggleNav" type="checkbox"></input>Toggle Navigation Type</label></div>
+      <div style="float:right; width:250px; height:30px;"><label><input id="toggleColor" type="checkbox"></input>Structural Coloring</label></div>
+      <div style="float:right; width:250px; height:30px;"><label><input id="toggleComparFoldOnly" type="checkbox" checked></input>Show Comp. Folds Only</label></div>
       <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="resetZoom()">Reset Zoom</button></div>
       <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(0)">Pick File</button></div>
       <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(1)">Previous File</button></div>
@@ -63,6 +69,10 @@
   var currentlyLoadedGraph;   // used by next/previous buttons via reloadGraph()
   var previousFile;           // used by file sidebar to reset bg color
   var xymax;
+  var condDist;
+  var showStructuralColor;
+  var showComparFoldsOnly;
+  var showOutOfRange;
 
   //for the larger graph
   var l_options = {
@@ -74,8 +84,12 @@
       showLabels: true,
       labelPlacement: "above",
       canvasRender: true,
-      cColor: "#A9A9A9", // was #AD8200
+      cColor: "#444", // was #AD8200
       cPadding: -8
+    },
+    legend: {
+      show: true,
+      position: "se",
     },
     grid: { 
       hoverable: true,  //enables mouse-over events
@@ -108,6 +122,9 @@
       grid: { hoverable: false },
       color: "#000",
     },
+    legend: {
+      show: false
+    },
     grid: { 
       borderWidth: 0,
       minBorderMargin: 0
@@ -121,6 +138,13 @@
   }
 
   $(function() {
+    // set default values
+    showStructuralColor = false;
+    showComparFoldsOnly = true;
+    showOutOfRange = true;
+    condDist = 15;
+    $("#condDist").prop("value", 15);
+
     // prints footer
     $("#footer").prepend("Flot " + $.plot.version);
 
@@ -129,6 +153,30 @@
 
     // toggles between click/drag zoom and navigation
     $("#toggleNav").on("click", toggleNav);
+
+    // allows user to modify condition distance for folding
+    $("#condDistButton").on("click", function() {
+      condDist = $("#condDist").prop("value");
+      if (showOutOfRange)
+        flotFileData(files[currentlyLoadedGraph]);
+    });
+
+    // shows only comparative folds made
+    $("#toggleComparFoldOnly").on("click", function() {
+      showComparFoldsOnly = (showComparFoldsOnly + 1) % 2;
+      flotFileData(files[currentlyLoadedGraph]);
+    });
+
+    // toggle color scheme between structural and comparative
+    $("#toggleColor").on("click", function() {
+      showStructuralColor = (showStructuralColor + 1) % 2;
+      flotFileData(files[currentlyLoadedGraph]);
+    });
+
+    $("#toggleOutOfRange").on("click", function() {
+      showOutOfRange = (showOutOfRange + 1) % 2;
+    });
+
   });
 
   $(document).ready(function() {
@@ -359,13 +407,32 @@
     for (var j = 0; j < rawDataOriginal.length; j++) {
       var tempChar = rawDataOriginal[j][1];
       organizedData.push( {
-          color: "#000",
           data: [[rawDataOriginal[j][2], rawDataOriginal[j][3]]],
           labels: [tempChar],
       });
     }
   }
-
+  function flotGraphComparModel() {
+    var tempData = comparativeModelData;
+    var nBaseColor;
+    if (showStructuralColor)
+      nBaseColor = "#444";
+    else
+      nBaseColor = "#0066ff";
+    // clears graph between loading files
+    for (var i = 1; i < tempData.length; i++) {
+      if(tempData[i][8]) {
+        for (var j = tempData[i][1]; j <= tempData[i][2]; j++) {
+          organizedData[j-1].color = nBaseColor;
+          organizedData[j-1].cColor = nBaseColor;
+        }
+        for (var j = tempData[i][3]; j <= tempData[i][4]; j++) {
+          organizedData[j-1].color = nBaseColor;
+          organizedData[j-1].cColor = nBaseColor;
+        }
+      }
+    }
+  }
 
   function flotFileData(file) {
     var reader = new FileReader();
@@ -378,36 +445,131 @@
       var newData = $.csv.toArrays(csv, {
         onParseValue:$.csv.hooks.castToScalar
       });
-
       // reset graph state
       flotLoadSecondaryStructure();
 
+      // load comparative model data
+      flotGraphComparModel();
+
       // modify the data; start @ 1 to skip column titles
+      // do comparative coloring
       for (var i = 1; i < newData.length; i++) {
-        if(newData[i][8]) {
+        var nBaseColor;
+        if (newData[i][11] > condDist && showOutOfRange) {
+          nBaseColor = "#EEB422"; //orange
           for (var j = newData[i][1]; j <= newData[i][2]; j++) {
-            organizedData[j-1].color = "#CD2626";
-            organizedData[j-1].cColor = "#CD2626";
+            organizedData[j-1].color = nBaseColor;
+            organizedData[j-1].cColor = nBaseColor;
           }
           for (var j = newData[i][3]; j <= newData[i][4]; j++) {
-            organizedData[j-1].color = "#CD2626";
-            organizedData[j-1].cColor = "#CD2626";
+            organizedData[j-1].color = nBaseColor;
+            organizedData[j-1].cColor = nBaseColor;
+          }
+          continue; // jump to next interation
+        }
+        if (showStructuralColor) {
+          switch(newData[i][13]) {
+            // primary initiation; yellow
+            case 1: nBaseColor = PRIMARY_INITIATION;
+            break;
+            // primary elongation; orange
+            case 2: nBaseColor = PRIMARY_ELONGATION;
+            break;
+            // secondary initiation; green-blue/turqoise
+            case 3: nBaseColor = SECONDARY_INITIATION;
+            break;
+            // secondary elongation; blue
+            case 4: nBaseColor = SECONDARY_ELONGATION;
+            break;
+            default: nBaseColor = "#000000"; //this shouldn't happen
           }
         }
-        else {
+        // if comparative fold
+        if(newData[i][8]) {
+          if (!showStructuralColor)
+            nBaseColor = "#CD2626"; //red
+          for (var j = newData[i][1]; j <= newData[i][2]; j++) {
+            organizedData[j-1].color = nBaseColor;
+            organizedData[j-1].cColor = nBaseColor;
+          }
+          for (var j = newData[i][3]; j <= newData[i][4]; j++) {
+            organizedData[j-1].color = nBaseColor;
+            organizedData[j-1].cColor = nBaseColor;
+          }
+        }
+        // not comparative fold
+        else if (!showComparFoldsOnly){
+          if (!showStructuralColor)
+            nBaseColor = "#76EE00"; //green
           for (var j = newData[i][1]; j <= newData[i][2]; j++) {
             if (organizedData[j-1].color != "#CD2626") { //prevent overwrite of reds
-              organizedData[j-1].color = "#0066ff";
-              organizedData[j-1].cColor = "#0066ff";
+              organizedData[j-1].color = nBaseColor;
+              organizedData[j-1].cColor = nBaseColor;
             }
           }
           for (var j = newData[i][3]; j <= newData[i][4]; j++) {
-            if (organizedData[j-1].color != "#CD2626") {  //prevent overwrite of reds
-              organizedData[j-1].color = "#0066ff";
-              organizedData[j-1].cColor = "#0066ff";
+            if (organizedData[j-1].color != "#CD2626") { //prevent overwrite of reds
+              organizedData[j-1].color = nBaseColor;
+              organizedData[j-1].cColor = nBaseColor;
             }
           }
         }
+      }
+
+
+      // legend
+      // organizedData.push({
+      //   color: "#444",
+      //   label: "Untouched",
+      //   data: [],
+      // });
+      if (showStructuralColor) {
+        organizedData.push({
+          color: PRIMARY_INITIATION,
+          label: "Primary Initiation",
+          data: [],
+        });
+        organizedData.push({
+          color: PRIMARY_ELONGATION,
+          label: "Primary Elongation",
+          data: [],
+        });
+        organizedData.push({
+          color: SECONDARY_INITIATION,
+          label: "Secondary Initiation",
+          data: [],
+        });
+        organizedData.push({
+          color: SECONDARY_ELONGATION,
+          label: "Secondary Elongation",
+          data: [],
+        });
+      }
+      else {
+        organizedData.push({
+          color: "#CD2626",
+          label: "Correct Comparative Fold",
+          data: [],
+        });
+        organizedData.push({
+          color: "#0066ff",
+          label: "Missed Comparative Fold",
+          data: [],
+        });
+      }
+      if (!showComparFoldsOnly) {
+        organizedData.push({
+          color: "#33CC00",
+          label: "Incorrect Fold",
+          data: [],
+        });
+      }
+      if (showOutOfRange) {
+        organizedData.push({
+          color: "#EEB422",
+          label: "Out of Range",
+          data: [],
+        });
       }
 
       // append to the existing dataset

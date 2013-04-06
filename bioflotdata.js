@@ -1,4 +1,13 @@
 // raw flot data for the graphs
+// also some "constants"
+
+var PRIMARY_INITIATION= "#CDCD00"       //yellow
+var PRIMARY_ELONGATION = "#FF9900";     //orange
+var SECONDARY_INITIATION = "#66CC99";   //turquoise
+var SECONDARY_ELONGATION = "#006fff";   //blue
+
+var COMPARATIVE_FOLD = "#FF0000";
+var NON_COMPARATIVE_FOLD = "#006fff";
 
     //postscript data for creating secondary structure
 var secondaryStructureData = [

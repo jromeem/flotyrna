@@ -42,9 +42,10 @@
      <!-- <div style="float:right; width:250px; height:20px;"><label><input id="enableTooltip" type="checkbox"></input>Enable tooltip</label></div> -->
       <!-- <div style="float:right; width:250px; height:20px;"><label><input id="enableSquareZoom" type="checkbox" checked="checked"></input>Square Mouse Zoom</label></div> -->
       <div style="float:right; width:250px; height:20px;"><label><input id="toggleNav" type="checkbox"></input>Toggle Navigation Type</label></div>
-      <div style="float:right; width:250px; height:20px;"><label><input id="toggleColor" type="checkbox" checked></input>Structural Coloring</label></div>
-      <div style="float:right; width:250px; height:20px;"><label><input id="toggleComparModel" type="checkbox"></input>Display Comparative Model</label></div>
-      <div style="float:right; width:250px; height:20px;"><label><input id="toggleComparFoldOnly" type="checkbox"></input>Comparative Folds Only</label></div>
+      <div style="float:right; width:250px; height:20px;"><label><input id="toggleComparModel" type="checkbox"></input>Display Comp. Model</label></div>
+      <div style="float:right; width:250px; height:20px;"><label><input id="toggleColor" type="checkbox"></input>Structural Coloring</label></div>
+      <!-- <div style="float:right; width:250px; height:20px;"><label><input id="toggleColorComparOnly" type="checkbox" checked></input>Color Comp. Folds Only</label></div> -->
+      <div style="float:right; width:250px; height:20px;"><label><input id="toggleComparFoldOnly" type="checkbox"></input>Show Comp. Folds Only</label></div>
       <div class="demo-item" style="float:right; width:250px; height:10px;"></div>
       <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="resetZoom()">Reset Zoom</button></div>
       <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(0)">Pick File</button></div>
@@ -65,9 +66,10 @@
   var currentlyLoadedGraph;   // used by next/previous buttons via reloadGraph()
   var previousFile;           // used by file sidebar to reset bg color
   var xymax;
-  var helixColorFormat;
+  var showStructuralColor;
   var showComparModel;
   var showComparFoldsOnly;
+  // var colorComparOnly;
 
   //for the larger graph
   var l_options = {
@@ -81,8 +83,12 @@
       },
       color: "#006fff",
     },
-    xaxis: { min: 0, max: 1600, ticks:12 },
-    yaxis: { min: 0, max: 1600, ticks:12 },
+    xaxis: { min: -5, max: 1600, ticks:12 },
+    yaxis: { min: -5, max: 1600, ticks:12 },
+    legend: {
+      show: true,
+      position: "se",
+    },
     selection: {
               // empty because pan/zoom is enabled by default
       // mode: "xy",
@@ -106,8 +112,11 @@
       grid: { hoverable: false },
       color: "#006fff",
     },
-    xaxis: { min: 0, max: 1600, ticks:8 },
-    yaxis: { min: 0, max: 1600, ticks:8 },
+    xaxis: { min: -5, max: 1600, ticks:8 },
+    yaxis: { min: -5, max: 1600, ticks:8 },
+    legend: {
+      show: false
+    },
     selection: {
       mode: "xy",  //for selection plugin
       square: true
@@ -115,9 +124,12 @@
   }
 
   $(function() {
-    helixColorFormat = true;
+    // set default values
+    showStructuralColor = false;
     showComparModel = false;
-    showComparFoldsOnly = false;
+    showComparFoldsOnly = true;
+    // colorComparOnly = true;
+
     // prints footer
     $("#footer").prepend("Flot " + $.plot.version);
 
@@ -126,14 +138,30 @@
 
     // toggles between click/drag zoom and navigation
     $("#toggleNav").on("click", toggleNav);
+
+    // toggle color scheme between structural and comparative
     $("#toggleColor").on("click", function() {
-      helixColorFormat = (helixColorFormat + 1) % 2;
+      showStructuralColor = (showStructuralColor + 1) % 2;
+      // if (!showStructuralColor) {
+      //   colorComparOnly = false;
+      //   $("#toggleColorComparOnly").prop("checked", false);
+      // }
       flotFileData(files[currentlyLoadedGraph], 0);
     });
+
+    // display color scheme for comparative models only
+    // $("#toggleColorComparOnly").on("click", function() {
+    //   showStructuralColor = (showStructuralColor + 1) % 2;
+    //   flotFileData(files[currentlyLoadedGraph], 0);
+    // });
+
+    // display the comparative model
     $("#toggleComparModel").on("click", function() {
       showComparModel = (showComparModel + 1) % 2;
       flotFileData(files[currentlyLoadedGraph], 0);
     });
+
+    // display comparative folds only
     $("#toggleComparFoldOnly").on("click", function() {
       showComparFoldsOnly = (showComparFoldsOnly + 1) % 2;
       flotFileData(files[currentlyLoadedGraph], 0);
@@ -145,7 +173,6 @@
       $('#fileInput').bind('change', handleFileSelect);
     }
     flotTextData();
-
 
     $('#run').bind('click', flotTextData);
   });
@@ -306,7 +333,6 @@
       else {
         if (files.length > 1) {
         currentlyLoadedGraph = prompt("File to load (from 1 to " + (files.length) + "):") - 1;   //prompt user for input. subtract one to provide illusion of index starting at 1
-        flotFileData(files[currentlyLoadedGraph], 1);
         sidebarFileLoad(currentlyLoadedGraph);
       }
       else
@@ -321,7 +347,6 @@
       if (files.length > 1) {
         if ((currentlyLoadedGraph - 1) >= 0) {
           currentlyLoadedGraph--;
-          flotFileData(files[currentlyLoadedGraph], 1);
           sidebarFileLoad(currentlyLoadedGraph);
         }
         else
@@ -339,7 +364,6 @@
       if (files.length > 1) {
         if ((currentlyLoadedGraph) < files.length - 1) {
           currentlyLoadedGraph++;
-          flotFileData(files[currentlyLoadedGraph], 1);
           sidebarFileLoad(currentlyLoadedGraph);
         }
         else
@@ -366,36 +390,34 @@
     }
 
     for (var k = 0; k < rawDataOriginal.length; k++) {
-      if (rawDataOriginal[k][8]) {  //if comparative == 1, draw the triangle
-        for (var h = 0; h <= (rawDataOriginal[k][4] - rawDataOriginal[k][3]); h++) {
-          var foldColor = "#000000";
-          // if(helixColorFormat) {
-          //   switch(rawDataOriginal[k][13]) {
-          //     // primary initiation; yellow
-          //     case 1: foldColor = "#CDCD00";
-          //     break;
-          //     // primary elongation; orange
-          //     case 2: foldColor = "#FF9900";
-          //     break;
-          //     // secondary initiation; green-blue/turqoise
-          //     case 3: foldColor = "#66CC99";
-          //     break;
-          //     // secondary elongation; blue
-          //     case 4: foldColor = "#006fff";
-          //     break;
-          //     default: foldColor = "#000000"; //this shouldn't happen
-          //   }
-          // }
-          // else
-          //   foldColor = "#006fff";  //display missed
-          organizedData.push({
-            color: foldColor,
-            data:
-            [[(rawDataOriginal[k][1] + h), (rawDataOriginal[k][1] + h)],
-            [(rawDataOriginal[k][1] + h), (rawDataOriginal[k][4] - h)],
-            [(rawDataOriginal[k][4] - h), (rawDataOriginal[k][4] - h)]
-          ]});
-        }
+      var foldColor = "#333";
+      for (var h = 0; h <= (rawDataOriginal[k][4] - rawDataOriginal[k][3]); h++) {
+        // if(showStructuralColor) {
+        //   switch(rawDataOriginal[k][13]) {
+        //     // primary initiation; yellow
+        //     case 1: foldColor = PRIMARY_INITIATION;
+        //     break;
+        //     // primary elongation; orange
+        //     case 2: foldColor = PRIMARY_ELONGATION;
+        //     break;
+        //     // secondary initiation; green-blue/turqoise
+        //     case 3: foldColor = SECONDARY_INITIATION;
+        //     break;
+        //     // secondary elongation; blue
+        //     case 4: foldColor = SECONDARY_ELONGATION;
+        //     break;
+        //     default: foldColor = "#000000"; //this shouldn't happen
+        //   }
+        // }
+        // else
+        //   foldColor = "#006fff";  //display missed
+        organizedData.push({
+          color: foldColor,
+          data:
+          [[(rawDataOriginal[k][1] + h), (rawDataOriginal[k][1] + h)],
+          [(rawDataOriginal[k][1] + h), (rawDataOriginal[k][4] - h)],
+          [(rawDataOriginal[k][4] - h), (rawDataOriginal[k][4] - h)]
+        ]});
       }
     }
 
@@ -416,7 +438,9 @@
       });
 
       // detect largest x/y values for current file
-      xymax = newData[newData.length-1][4] + 10;
+      xymax = newData[newData.length-1][4];
+      xymax += xymax/100 + 10;
+      console.log(xymax);
 
       //check if file is avb file; if so, only show  compar lines
       if (avbCheck) {
@@ -447,54 +471,60 @@
             ]});
         }
         else
-          organizedData.push(
-            [[newData[j][3], newData[j][2]],
-            [newData[j][4], newData[j][1]]
-          ]);
-      }
-
-      //draw triangles
-      for (var k = 0; k < newData.length; k++) {
-        if (newData[k][8]) {  //if comparative == 1, draw the triangle
-          for (var h = 0; h <= (newData[k][4] - newData[k][3]); h++) {
-            var foldColor;
-          if(helixColorFormat) {
-            switch(newData[k][13]) {
-              // primary initiation; yellow
-              case 1: foldColor = "#CDCD00";
-              break;
-              // primary elongation; orange
-              case 2: foldColor = "#FF9900";
-              break;
-              // secondary initiation; green-blue/turqoise
-              case 3: foldColor = "#66CC99";
-              break;
-              // secondary elongation; blue
-              case 4: foldColor = "#006fff";
-              break;
-              default: foldColor = "#000000"; //this shouldn't happen
-            }
-          }
-          else
-            foldColor = "#FF0000";
-          organizedData.push({
-            color: foldColor,
-            data:
-            [[(newData[k][1] + h), (newData[k][1] + h)],
-            [(newData[k][1] + h), (newData[k][4] - h)],
-            [(newData[k][4] - h), (newData[k][4] - h)]
-          ]});
-          }
-        }
-        else if(!showComparFoldsOnly) {
-              // fold is made but not in compar model
-          organizedData.push({
+          organizedData.push( {
             color: "#006fff",
             data:
-            [[(newData[k][1] + h), (newData[k][1] + h)],
-            [(newData[k][1] + h), (newData[k][4] - h)],
-            [(newData[k][4] - h), (newData[k][4] - h)]
+            [[newData[j][3], newData[j][2]],
+            [newData[j][4], newData[j][1]]
           ]});
+      }
+      //draw triangles
+      for (var k = 1; k < newData.length; k++) {
+        var foldColor;
+        if(showStructuralColor) {
+          switch(newData[k][13]) {
+            // primary initiation; yellow
+            case 1: foldColor = PRIMARY_INITIATION;
+            break;
+            // primary elongation; orange
+            case 2: foldColor = PRIMARY_ELONGATION;
+            break;
+            // secondary initiation; green-blue/turqoise
+            case 3: foldColor = SECONDARY_INITIATION;
+            break;
+            // secondary elongation; blue
+            case 4: foldColor = SECONDARY_ELONGATION;
+            break;
+            default: foldColor = "#000000"; //this shouldn't happen
+          }
+        }
+        // if comparative == 1, draw its triangle
+        if (newData[k][8]) {
+          for (var h = 0; h <= (newData[k][4] - newData[k][3]); h++) {
+            if(!showStructuralColor)
+              foldColor = COMPARATIVE_FOLD;  //red
+            organizedData.push({
+              color: foldColor,
+              data:
+              [[(newData[k][1] + h), (newData[k][1] + h)],
+              [(newData[k][1] + h), (newData[k][4] - h)],
+              [(newData[k][4] - h), (newData[k][4] - h)]
+            ]});
+          }
+        }
+        // fold is made but not in compar model
+        else if(!showComparFoldsOnly) {
+          if(!showStructuralColor)
+            foldColor = NON_COMPARATIVE_FOLD; //blue
+          for (var h = 0; h <= (newData[k][4] - newData[k][3]); h++) {
+            organizedData.push({
+              color: foldColor,
+              data:
+              [[(newData[k][1] + h), (newData[k][1] + h)],
+              [(newData[k][1] + h), (newData[k][4] - h)],
+              [(newData[k][4] - h), (newData[k][4] - h)]
+            ]});
+          }
         }
       }
 
@@ -504,6 +534,49 @@
         data: [[-5000,-5000],[5000,5000]],
         color: "#555"
       };
+
+      // legend
+      if (showComparModel) {
+        organizedData.push({
+          color: "#333",
+          label: "Comparative Model",
+          data: [],
+        });
+      }
+      if (showStructuralColor) {
+        organizedData.push({
+          color: PRIMARY_INITIATION,
+          label: "Primary Initiation",
+          data: [],
+        });
+        organizedData.push({
+          color: PRIMARY_ELONGATION,
+          label: "Primary Elongation",
+          data: [],
+        });
+        organizedData.push({
+          color: SECONDARY_INITIATION,
+          label: "Secondary Initiation",
+          data: [],
+        });
+        organizedData.push({
+          color: SECONDARY_ELONGATION,
+          label: "Secondary Elongation",
+          data: [],
+        });
+      }
+      else {
+        organizedData.push({
+          color: COMPARATIVE_FOLD,
+          label: "Comparative Fold",
+          data: [],
+        });
+        organizedData.push({
+          color: NON_COMPARATIVE_FOLD,
+          label: "Non-Comparative Fold",
+          data: [],
+        });
+      }
 
       // append to the existing dataset
       bioflot.setData(organizedData);

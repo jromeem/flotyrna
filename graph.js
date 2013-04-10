@@ -1,42 +1,32 @@
+
 var organizedData = [];
 var files;
 var currentlyLoadedGraph;   // used by next/previous buttons via reloadGraph()
 var previousFile;           // used by file sidebar to reset bg color
-var condDist;
+var xymax;
 var showStructuralColor;
+var showComparModel;
 var showComparFoldsOnly;
-var showOutOfRange;
-
-// defualt sequence: e.coli 16s
-var rnaMap = e_coli_16s;
-var rawDataOriginal = rnaMap['2d_map'];
-
+var rawDataOriginal = comparativeModelData;
 
 //for the larger graph
 var l_options = {
   series: {
     shadowSize: 0,
-    lines: { show: false },
+    lines: { show: true },
     points: { show: false },
-    color: "#000",
-    showLabels: true,
-    labelPlacement: "above",
-    canvasRender: true,
-    cColor: "#444", // was #AD8200
-    cPadding: -8
+    grid: { 
+      hoverable: true,  //enables mouse-over events
+      clickable: true,
+    },
+    color: "#006fff",
   },
+  xaxis: { min: -5, max: 1600, ticks:12 },
+  yaxis: { min: -5, max: 1600, ticks:12 },
   legend: {
     show: true,
     position: "se",
   },
-  grid: { 
-    hoverable: true,  //enables mouse-over events
-    clickable: true,
-    borderWidth: 0,
-    minBorderMargin: 0
-  },
-  xaxis: { min: -500, max: 800, ticks: 0 },
-  yaxis: { min: -700, max: 500, ticks: 0 },
   selection: {
             // empty because pan/zoom is enabled by default
     // mode: "xy",
@@ -48,7 +38,7 @@ var l_options = {
   pan: {
     interactive: true,
     frameRate: 30
-  }
+  },
 }
 
 //for the smaller overview graph
@@ -56,19 +46,15 @@ var s_options = {
   series: {
     shadowSize: 0,
     lines: { show: true },
-    points: { show: true, fillColor: "#000", radius:.3 },
+    points: { show: false },
     grid: { hoverable: false },
-    color: "#000",
+    color: "#006fff",
   },
+  xaxis: { min: -5, max: 1600, ticks:8 },
+  yaxis: { min: -5, max: 1600, ticks:8 },
   legend: {
     show: false
   },
-  grid: { 
-    borderWidth: 0,
-    minBorderMargin: 0
-  },
-  xaxis: { min: -500, max: 800, ticks: 0 },
-  yaxis: { min: -700, max: 500, ticks: 0 },
   selection: {
     mode: "xy",  //for selection plugin
     square: true
@@ -78,10 +64,9 @@ var s_options = {
 $(function() {
   // set default values
   showStructuralColor = false;
+  showComparModel = false;
   showComparFoldsOnly = true;
-  showOutOfRange = true;
-  condDist = 15;
-  $("#condDist").prop("value", 15);
+  // colorComparOnly = true;
 
   // prints footer
   $("#footer").prepend("Flot " + $.plot.version);
@@ -92,48 +77,45 @@ $(function() {
   // toggles between click/drag zoom and navigation
   $("#toggleNav").on("click", toggleNav);
 
-  // allows user to modify condition distance for folding
-  $("#condDistButton").on("click", function() {
-    condDist = $("#condDist").prop("value");
-    if (showOutOfRange)
-      flotFileData(files[currentlyLoadedGraph]);
-  });
-
-  // shows only comparative folds made
-  $("#toggleComparFoldOnly").on("click", function() {
-    showComparFoldsOnly = (showComparFoldsOnly + 1) % 2;
-    flotFileData(files[currentlyLoadedGraph]);
-  });
-
   // toggle color scheme between structural and comparative
   $("#toggleColor").on("click", function() {
     showStructuralColor = (showStructuralColor + 1) % 2;
-    flotFileData(files[currentlyLoadedGraph]);
+    // if (!showStructuralColor) {
+    //   colorComparOnly = false;
+    //   $("#toggleColorComparOnly").prop("checked", false);
+    // }
+    flotFileData(files[currentlyLoadedGraph], 0);
   });
 
-  $("#toggleOutOfRange").on("click", function() {
-    showOutOfRange = (showOutOfRange + 1) % 2;
+  // display color scheme for comparative models only
+  // $("#toggleColorComparOnly").on("click", function() {
+  //   showStructuralColor = (showStructuralColor + 1) % 2;
+  //   flotFileData(files[currentlyLoadedGraph], 0);
+  // });
+
+  // display the comparative model
+  $("#toggleComparModel").on("click", function() {
+    showComparModel = (showComparModel + 1) % 2;
+    flotFileData(files[currentlyLoadedGraph], 0);
   });
 
+  // display comparative folds only
+  $("#toggleComparFoldOnly").on("click", function() {
+    showComparFoldsOnly = (showComparFoldsOnly + 1) % 2;
+    flotFileData(files[currentlyLoadedGraph], 0);
+  });
 });
 
 $(document).ready(function() {
   if(isAPIAvailable()) {
     $('#fileInput').bind('change', handleFileSelect);
   }
-  //draw initial diagram
   flotTextData();
-  flotLoadSecondaryStructure();
-  bioflot.setData(organizedData);
-  bioflot.setupGrid();
-  bioflot.draw();
 
-  flotmap.setData(organizedData);
-  flotmap.setupGrid();
-  flotmap.draw();
+  $('#run').bind('click', flotTextData);
 });
 
-// displays a warning if the browser doesn't support the HTML5 File API
+  // displays a warning if the browser doesn't support the HTML5 File API
 function isAPIAvailable() {
   // Check for the various File API support.
   if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -151,7 +133,7 @@ function flotTextData() {
   bioflot = $.plot('#placeholder', fileData, l_options);
   flotmap = $.plot('#overview', fileData, s_options);
 
-  // bind main graph for selection plugin
+// bind main graph for selection plugin
   $("#placeholder").bind("plotselected", function (event, ranges) {
 
     // clamp the zooming to prevent eternal zoom
@@ -184,8 +166,8 @@ function flotTextData() {
 function resetZoom() {
   bioflot = $.plot("#placeholder", organizedData,
    $.extend(true, {}, l_options, {
-     xaxis: { min: -500, max: 800, ticks: 0 },
-     yaxis: { min: -700, max: 500, ticks: 0 }
+     xaxis: { min: -5, max: xymax },
+     yaxis: { min: -5, max: xymax }
    })
   );
 }
@@ -245,7 +227,7 @@ function handleFileSelect(evt) {
   files = evt.target.files; // FileList object
   // reset the flot dataset and load new file
   bioflot.setData([]);
-  flotFileData(files[0]);
+  flotFileData(files[0], 1);
   currentlyLoadedGraph = 0;
   displayFiles();
   $("#file-button_0").css("background-color", "#ff6600");
@@ -273,7 +255,7 @@ function displayFiles() {
 // load graphs based on input from file sidebar
 function sidebarFileLoad(file) {
   $("#file-button_" + previousFile).removeAttr('style');
-  flotFileData(files[file]);
+  flotFileData(files[file], 1);
   currentlyLoadedGraph = file;
   $("#file-button_" + file).css("background-color", "#ff6600");
   previousFile = file;
@@ -289,7 +271,6 @@ function reloadGraph(n) {
     else {
       if (files.length > 1) {
       currentlyLoadedGraph = prompt("File to load (from 1 to " + (files.length) + "):") - 1;   //prompt user for input. subtract one to provide illusion of index starting at 1
-      flotFileData(files[currentlyLoadedGraph]);
       sidebarFileLoad(currentlyLoadedGraph);
     }
     else
@@ -304,7 +285,6 @@ function reloadGraph(n) {
     if (files.length > 1) {
       if ((currentlyLoadedGraph - 1) >= 0) {
         currentlyLoadedGraph--;
-        flotFileData(files[currentlyLoadedGraph]);
         sidebarFileLoad(currentlyLoadedGraph);
       }
       else
@@ -322,7 +302,6 @@ function reloadGraph(n) {
     if (files.length > 1) {
       if ((currentlyLoadedGraph) < files.length - 1) {
         currentlyLoadedGraph++;
-        flotFileData(files[currentlyLoadedGraph]);
         sidebarFileLoad(currentlyLoadedGraph);
       }
       else
@@ -338,90 +317,53 @@ function reloadGraph(n) {
   }
 }
 
-/*  This function essentially graphs the initial secondary structure */
-function flotLoadSecondaryStructure() {
+function flotGraphCompar() {
   // clears graph between loading files
   organizedData = [];
   for (var j = 0; j < rawDataOriginal.length; j++) {
-    var tempChar = rawDataOriginal[j][1];
-    organizedData.push( {
-        data: [[rawDataOriginal[j][2], rawDataOriginal[j][3]]],
-        labels: [tempChar],
-    });
+    organizedData.push(
+      [[rawDataOriginal[j][3], rawDataOriginal[j][2]],
+      [rawDataOriginal[j][4], rawDataOriginal[j][1]]
+    ]);
   }
-}
 
-// please document this
-function flotGraphComparModel() {
-  var tempData = comparativeModelData;
-  var nBaseColor;
-  if (showStructuralColor)
-    nBaseColor = "#444";
-  else
-    nBaseColor = "#0066ff";
-  // clears graph between loading files
-  for (var i = 1; i < tempData.length; i++) {
-    if(tempData[i][8]) {
-      for (var j = tempData[i][1]; j <= tempData[i][2]; j++) {
-        organizedData[j-1].color = nBaseColor;
-        organizedData[j-1].cColor = nBaseColor;
-      }
-      for (var j = tempData[i][3]; j <= tempData[i][4]; j++) {
-        organizedData[j-1].color = nBaseColor;
-        organizedData[j-1].cColor = nBaseColor;
-      }
+  for (var k = 0; k < rawDataOriginal.length; k++) {
+    var foldColor = "#333";
+    for (var h = 0; h <= (rawDataOriginal[k][4] - rawDataOriginal[k][3]); h++) {
+      // if(showStructuralColor) {
+      //   switch(rawDataOriginal[k][13]) {
+      //     // primary initiation; yellow
+      //     case 1: foldColor = PRIMARY_INITIATION;
+      //     break;
+      //     // primary elongation; orange
+      //     case 2: foldColor = PRIMARY_ELONGATION;
+      //     break;
+      //     // secondary initiation; green-blue/turqoise
+      //     case 3: foldColor = SECONDARY_INITIATION;
+      //     break;
+      //     // secondary elongation; blue
+      //     case 4: foldColor = SECONDARY_ELONGATION;
+      //     break;
+      //     default: foldColor = "#000000"; //this shouldn't happen
+      //   }
+      // }
+      // else
+      //   foldColor = "#006fff";  //display missed
+      organizedData.push({
+        color: foldColor,
+        data:
+        [[(rawDataOriginal[k][1] + h), (rawDataOriginal[k][1] + h)],
+        [(rawDataOriginal[k][1] + h), (rawDataOriginal[k][4] - h)],
+        [(rawDataOriginal[k][4] - h), (rawDataOriginal[k][4] - h)]
+      ]});
     }
   }
+
+
+
 }
 
-// pick RNA sequence
-// change info and plot accordingly
-function pickRNA(map) {
-  // TODO
-  rnaMap = map
-  rawDataOriginal = rnaMap['2d_map'];
-  flotLoadSecondaryStructure();
-
-  var t;
-  var xmin; var xmax;
-  var ymin; var ymax;
-
-  if (rnaMap['name'] == 'tRNA-Phenylalanine') {
-    xmin = 50; xmax = 600;
-    ymin = -550; ymax = 0;
-  } else if (rnaMap['name'] == 'E.coli 5s') {
-    xmin = 150; xmax = 470;
-    ymin = -420; ymax = -100;
-  } else if (rnaMap['name'] == 'E.coli 16s') {
-    xmin = -500; xmax = 800;
-    ymin = -700; ymax = 500;
-  } else if (rnaMap['name'] == 'E.coli 23s') {
-    xmin = -280; xmax = 1000;
-    ymin = -1050; ymax = 220;
-  } else {
-    xmin = 0; xmax = 0;
-    ymin = 0; ymax = 0;
-  }
-
-  $("#rnaSeq").html(rnaMap['name'] + ' ' + rnaMap['gen_bank_id']);
-
-  //alert(organizedData[0]);
-  bioflot = $.plot('#placeholder', organizedData,
-   $.extend(true, {}, l_options, {
-     xaxis: { min: xmin, max: xmax, ticks: 0 },
-     yaxis: { min: ymin, max: ymax, ticks: 0 }
-   })
-  );
-
-  flotmap = $.plot('#overview', organizedData,
-   $.extend(true, {}, s_options, {
-     xaxis: { min: xmin, max: xmax, ticks: 0 },
-     yaxis: { min: ymin, max: ymax, ticks: 0 }
-   })
-  );
-}
-
-function flotFileData(file) {
+function flotFileData(file, avbCheck) {
   var reader = new FileReader();
   reader.readAsText(file);
   $("#displayFileNumber").html("Current file: " + file.name);
@@ -432,84 +374,113 @@ function flotFileData(file) {
     var newData = $.csv.toArrays(csv, {
       onParseValue:$.csv.hooks.castToScalar
     });
-    // reset graph state
-    flotLoadSecondaryStructure();
-    //pickRNA(rnaMap);
 
-    // load comparative model data
-    flotGraphComparModel();
+    // detect largest x/y values for current file
+    xymax = newData[newData.length-1][4];
+    xymax += xymax/100 + 10;
+    console.log(xymax);
 
-    // modify the data; start @ 1 to skip column titles
-    // do comparative coloring
-    for (var i = 1; i < newData.length; i++) {
-      var nBaseColor;
-      if (newData[i][11] > condDist && showOutOfRange) {
-        nBaseColor = "#BF3EFF"; //purple
-        for (var j = newData[i][1]; j <= newData[i][2]; j++) {
-          organizedData[j-1].color = nBaseColor;
-          organizedData[j-1].cColor = nBaseColor;
-        }
-        for (var j = newData[i][3]; j <= newData[i][4]; j++) {
-          organizedData[j-1].color = nBaseColor;
-          organizedData[j-1].cColor = nBaseColor;
-        }
-        continue; // jump to next interation
+    //check if file is avb file; if so, only show  compar lines
+    if (avbCheck) {
+      if (file.name.indexOf("avb") != -1) {
+        showComparFoldsOnly = true;
+        $('#toggleComparFoldOnly').prop('checked', true);
       }
-      if (showStructuralColor) {
-        switch(newData[i][13]) {
+      else {
+        showComparFoldsOnly = false;
+        $('#toggleComparFoldOnly').prop('checked', false);
+      }
+    }
+    // reload compar graph
+    organizedData = [];
+    if (showComparModel)
+      flotGraphCompar();
+    for (var j = 1; j < newData.length; j++) {
+      //put [[x1,y1], [x2,y2]] into organizedData[]
+      //csv: y1, y2, x2, y2
+
+      // organizedData[j] = [[newData[j][3], newData[j][0]], [newData[j][2], newData[j][1]]];
+      if(newData[j][8]) {
+        organizedData.push({
+          color: "#ff6600",
+          data:
+          [[newData[j][3], newData[j][2]],
+          [newData[j][4], newData[j][1]]
+          ]});
+      }
+      else
+        organizedData.push( {
+          color: "#006fff",
+          data:
+          [[newData[j][3], newData[j][2]],
+          [newData[j][4], newData[j][1]]
+        ]});
+    }
+    //draw triangles
+    for (var k = 1; k < newData.length; k++) {
+      var foldColor;
+      if(showStructuralColor) {
+        switch(newData[k][13]) {
           // primary initiation; yellow
-          case 1: nBaseColor = PRIMARY_INITIATION;
+          case 1: foldColor = PRIMARY_INITIATION;
           break;
           // primary elongation; orange
-          case 2: nBaseColor = PRIMARY_ELONGATION;
+          case 2: foldColor = PRIMARY_ELONGATION;
           break;
           // secondary initiation; green-blue/turqoise
-          case 3: nBaseColor = SECONDARY_INITIATION;
+          case 3: foldColor = SECONDARY_INITIATION;
           break;
           // secondary elongation; blue
-          case 4: nBaseColor = SECONDARY_ELONGATION;
+          case 4: foldColor = SECONDARY_ELONGATION;
           break;
-          default: nBaseColor = "#000000"; //this shouldn't happen
+          default: foldColor = "#000000"; //this shouldn't happen
         }
       }
-      // if comparative fold
-      if(newData[i][8]) {
-        if (!showStructuralColor)
-          nBaseColor = "#CD2626"; //red
-        for (var j = newData[i][1]; j <= newData[i][2]; j++) {
-          organizedData[j-1].color = nBaseColor;
-          organizedData[j-1].cColor = nBaseColor;
-        }
-        for (var j = newData[i][3]; j <= newData[i][4]; j++) {
-          organizedData[j-1].color = nBaseColor;
-          organizedData[j-1].cColor = nBaseColor;
+      // if comparative == 1, draw its triangle
+      if (newData[k][8]) {
+        for (var h = 0; h <= (newData[k][4] - newData[k][3]); h++) {
+          if(!showStructuralColor)
+            foldColor = COMPARATIVE_FOLD;  //red
+          organizedData.push({
+            color: foldColor,
+            data:
+            [[(newData[k][1] + h), (newData[k][1] + h)],
+            [(newData[k][1] + h), (newData[k][4] - h)],
+            [(newData[k][4] - h), (newData[k][4] - h)]
+          ]});
         }
       }
-      // not comparative fold
-      else if (!showComparFoldsOnly){
-        if (!showStructuralColor)
-          nBaseColor = "#76EE00"; //green
-        for (var j = newData[i][1]; j <= newData[i][2]; j++) {
-          if (organizedData[j-1].color != "#CD2626") { //prevent overwrite of reds
-            organizedData[j-1].color = nBaseColor;
-            organizedData[j-1].cColor = nBaseColor;
-          }
-        }
-        for (var j = newData[i][3]; j <= newData[i][4]; j++) {
-          if (organizedData[j-1].color != "#CD2626") { //prevent overwrite of reds
-            organizedData[j-1].color = nBaseColor;
-            organizedData[j-1].cColor = nBaseColor;
-          }
+      // fold is made but not in compar model
+      else if(!showComparFoldsOnly) {
+        if(!showStructuralColor)
+          foldColor = NON_COMPARATIVE_FOLD; //blue
+        for (var h = 0; h <= (newData[k][4] - newData[k][3]); h++) {
+          organizedData.push({
+            color: foldColor,
+            data:
+            [[(newData[k][1] + h), (newData[k][1] + h)],
+            [(newData[k][1] + h), (newData[k][4] - h)],
+            [(newData[k][4] - h), (newData[k][4] - h)]
+          ]});
         }
       }
     }
 
+    // draw diagonal line
+    // should this be put first or last? last for now.
+    organizedData[organizedData.length] = {
+      data: [[-5000,-5000],[5000,5000]],
+      color: "#555"
+    };
+
     // legend
-    // organizedData.push({
-    //   color: "#444",
-    //   label: "Untouched",
-    //   data: [],
-    // });
+    if (showComparModel) {
+      organizedData.push({
+        color: "#333",
+        label: "Comparative Model",
+        data: [],
+      });
+    }
     if (showStructuralColor) {
       organizedData.push({
         color: PRIMARY_INITIATION,
@@ -534,27 +505,13 @@ function flotFileData(file) {
     }
     else {
       organizedData.push({
-        color: "#CD2626",
-        label: "Correct Comparative Fold",
+        color: COMPARATIVE_FOLD,
+        label: "Comparative Fold",
         data: [],
       });
       organizedData.push({
-        color: "#0066ff",
-        label: "Missed Comparative Fold",
-        data: [],
-      });
-    }
-    if (!showComparFoldsOnly) {
-      organizedData.push({
-        color: "#33CC00",
-        label: "Incorrect Fold",
-        data: [],
-      });
-    }
-    if (showOutOfRange) {
-      organizedData.push({
-        color: "#BF3EFF",
-        label: "Out of Range",
+        color: NON_COMPARATIVE_FOLD,
+        label: "Non-Comparative Fold",
         data: [],
       });
     }
@@ -568,7 +525,6 @@ function flotFileData(file) {
     flotmap.setupGrid();
     flotmap.draw();
     resetZoom();
-
   };
   reader.onerror = function() { alert('Unable to read ' + file.fileName); };
 }

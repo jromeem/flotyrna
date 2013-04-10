@@ -12,6 +12,11 @@
   <script src="flot/jquery.flot.labels.js"></script>
 	<script src="flot/jquery.csv.js"></script>
   <script src="bioflotdata.js"></script>
+
+  <script src="data/e.coli_16s.js"></script>
+  <script src="data/e.coli_23s.js"></script>
+  <script src="data/e.coli_5s.js"></script>
+  <script src="data/trna_phe.js"></script>
 </head>
 <body>
 
@@ -412,6 +417,7 @@
       });
     }
   }
+
   function flotGraphComparModel() {
     var tempData = comparativeModelData;
     var nBaseColor;
@@ -585,7 +591,8 @@
     reader.onerror = function() { alert('Unable to read ' + file.fileName); };
   }
 
-  var rawDataOriginal = secondaryStructureData;
+  //var rawDataOriginal = secondaryStructureData;
+  var rawDataOriginal = e_coli_16s['2d_map'];
 </script>
 </body>
 </html>

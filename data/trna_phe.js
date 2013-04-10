@@ -1,4 +1,5 @@
 var trna_phe =    {
+	'name'        : 'tRNA-Phenylalanine',
 	'species'     : 'Saccharomyces cerevisiae',
 	'gen_bank_id' : '(K01553)',
 	'2d_map'      : [

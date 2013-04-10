@@ -1,4 +1,5 @@
 var e_coli_5s =  {
+    'name'        : 'E. coli 5s',
 	'species'     : 'Escherichia coli',
 	'gen_bank_id' : '(J01695)',
 	'2d_map'      : [

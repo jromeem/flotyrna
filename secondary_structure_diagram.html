@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>RNA Secondary Structure Diagram with Flot</title>
+	<title>Graphing RNA with Flot</title>
 	<link href="flot/examples/examples.css" rel="stylesheet" type="text/css">
 	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../../excanvas.min.js"></script><![endif]-->
 	<script src="flot/jquery.js"></script>
@@ -27,12 +27,10 @@
   <!-- use width:1300px for firefox. looks okay in chrome. find a way to fix this. -->
   <div id="content" style="width:1350px">
 
-    <hr />
     <input id="fileInput" type="file" name=files[] multiple />
-    <hr />
+    
     <br>
     <a href="index.html">RNA Folding Graph</a>
-    <br>
     <br>
 
     <div class="demo-container" style="float:left; width:220px; height:835px;">
@@ -56,9 +54,19 @@
       <div style="float:right; width:250px; height:30px;"><label><input id="toggleColor" type="checkbox"></input>Structural Coloring</label></div>
       <div style="float:right; width:250px; height:30px;"><label><input id="toggleComparFoldOnly" type="checkbox" checked></input>Show Comp. Folds Only</label></div>
       <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="resetZoom()">Reset Zoom</button></div>
-      <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(0)">Pick File</button></div>
+      <!--<div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(0)">Pick File</button></div>-->
       <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(1)">Previous File</button></div>
       <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(2)">Next File</button></div>
+      
+      <table style="float:right; width:250px; height:40px;">
+        <tr>
+          <td><button onclick="pickRNA(trna_phe)">TRNA</button></td>
+          <td><button onclick="pickRNA(e_coli_5s)">5s</button></td>
+          <td><button onclick="pickRNA(e_coli_16s)">16s</button></td>
+          <td><button onclick="pickRNA(e_coli_23s)">23s</button></td>
+        </tr>
+      </table>
+
     </div>
 
   </div>
@@ -78,6 +86,9 @@
   var showStructuralColor;
   var showComparFoldsOnly;
   var showOutOfRange;
+
+  // defualt sequence: e.coli 16s
+  var RNAMap = e_coli_16s;
 
   //for the larger graph
   var l_options = {
@@ -418,6 +429,7 @@
     }
   }
 
+  // !! please document this !!
   function flotGraphComparModel() {
     var tempData = comparativeModelData;
     var nBaseColor;
@@ -438,6 +450,14 @@
         }
       }
     }
+  }
+
+  // pick RNA sequence
+  // change info and plot accordingly
+  function pickRNA(rna) {
+    // TODO
+    RNAMap = rna;
+    alert(RNAMap['name']);
   }
 
   function flotFileData(file) {
@@ -522,7 +542,6 @@
         }
       }
 
-
       // legend
       // organizedData.push({
       //   color: "#444",
@@ -592,7 +611,8 @@
   }
 
   //var rawDataOriginal = secondaryStructureData;
-  var rawDataOriginal = e_coli_16s['2d_map'];
+  var rawDataOriginal = RNAMap['2d_map'];
+
 </script>
 </body>
 </html>

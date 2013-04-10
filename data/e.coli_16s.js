@@ -1,5 +1,5 @@
 var e_coli_16s =  {
-    'name'        : 'E. coli 16s',
+    'name'        : 'E.coli 16s',
     'species'     : 'Escherichia coli', 
     'gen_bank_id' : '(J01695)',
     '2d_map'      : [

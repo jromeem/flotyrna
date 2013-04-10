@@ -58,9 +58,10 @@
       <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(1)">Previous File</button></div>
       <div class="demo-item" style="float:right; width:250px; height:40px;"><button onclick="reloadGraph(2)">Next File</button></div>
       
+      <p id="rnaSeq" style="float:right; width:250px; height:40px;">E.coli 16s</p>
       <table style="float:right; width:250px; height:40px;">
         <tr>
-          <td><button onclick="pickRNA(trna_phe)">TRNA</button></td>
+          <td><button onclick="pickRNA(trna_phe)">tRNA</button></td>
           <td><button onclick="pickRNA(e_coli_5s)">5s</button></td>
           <td><button onclick="pickRNA(e_coli_16s)">16s</button></td>
           <td><button onclick="pickRNA(e_coli_23s)">23s</button></td>
@@ -88,7 +89,8 @@
   var showOutOfRange;
 
   // defualt sequence: e.coli 16s
-  var RNAMap = e_coli_16s;
+  var rnaMap = e_coli_16s;
+  var rawDataOriginal = rnaMap['2d_map'];
 
   //for the larger graph
   var l_options = {
@@ -229,7 +231,7 @@
     bioflot = $.plot('#placeholder', fileData, l_options);
     flotmap = $.plot('#overview', fileData, s_options);
 
-  // bind main graph for selection plugin
+    // bind main graph for selection plugin
     $("#placeholder").bind("plotselected", function (event, ranges) {
 
       // clamp the zooming to prevent eternal zoom
@@ -429,7 +431,7 @@
     }
   }
 
-  // !! please document this !!
+  // please document this
   function flotGraphComparModel() {
     var tempData = comparativeModelData;
     var nBaseColor;
@@ -454,10 +456,48 @@
 
   // pick RNA sequence
   // change info and plot accordingly
-  function pickRNA(rna) {
+  function pickRNA(map) {
     // TODO
-    RNAMap = rna;
-    alert(RNAMap['name']);
+    rnaMap = map
+    rawDataOriginal = rnaMap['2d_map'];
+    flotLoadSecondaryStructure();
+
+    var t;
+    var xmin; var xmax;
+    var ymin; var ymax;
+
+    if (rnaMap['name'] == 'tRNA-Phenylalanine') {
+      xmin = 50; xmax = 600;
+      ymin = -550; ymax = 0;
+    } else if (rnaMap['name'] == 'E.coli 5s') {
+      xmin = 150; xmax = 470;
+      ymin = -420; ymax = -100;
+    } else if (rnaMap['name'] == 'E.coli 16s') {
+      xmin = -500; xmax = 800;
+      ymin = -700; ymax = 500;
+    } else if (rnaMap['name'] == 'E.coli 23s') {
+      xmin = -280; xmax = 1000;
+      ymin = -1050; ymax = 220;
+    } else {
+      xmin = 0; xmax = 0;
+      ymin = 0; ymax = 0;
+    }
+
+    $("#rnaSeq").html(rnaMap['name'] + ' ' + rnaMap['gen_bank_id']);
+
+    bioflot = $.plot('#placeholder', organizedData,
+     $.extend(true, {}, l_options, {
+       xaxis: { min: xmin, max: xmax, ticks: 0 },
+       yaxis: { min: ymin, max: ymax, ticks: 0 }
+     })
+    );
+
+    flotmap = $.plot('#overview', organizedData,
+     $.extend(true, {}, s_options, {
+       xaxis: { min: xmin, max: xmax, ticks: 0 },
+       yaxis: { min: ymin, max: ymax, ticks: 0 }
+     })
+    );
   }
 
   function flotFileData(file) {
@@ -606,12 +646,13 @@
       flotmap.setupGrid();
       flotmap.draw();
       resetZoom();
+
     };
     reader.onerror = function() { alert('Unable to read ' + file.fileName); };
   }
 
+  // why is all the way at the bottom
   //var rawDataOriginal = secondaryStructureData;
-  var rawDataOriginal = RNAMap['2d_map'];
 
 </script>
 </body>

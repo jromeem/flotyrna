@@ -1,4 +1,3 @@
-
 var organizedData = [];
 var files;
 var currentlyLoadedGraph;   // used by next/previous buttons via reloadGraph()
@@ -7,7 +6,7 @@ var xymax;
 var showStructuralColor;
 var showComparModel;
 var showComparFoldsOnly;
-var rawDataOriginal = comparativeModelData;
+// var colorComparOnly;
 
 //for the larger graph
 var l_options = {
@@ -528,3 +527,5 @@ function flotFileData(file, avbCheck) {
   };
   reader.onerror = function() { alert('Unable to read ' + file.fileName); };
 }
+
+var rawDataOriginal = comparativeModelData;
